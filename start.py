@@ -12,13 +12,13 @@ if __name__ == '__main__':
     password = os.getenv('PASSWORD')
 
     if host is None:
-        raise RuntimeError('HOST environment variable not set')
+        raise RuntimeError('HOST 环境变量未设置')
 
     if username is None:
-        raise RuntimeError('USERNAME environment variable not set')
+        raise RuntimeError('USERNAME 环境变量未设置')
 
     if password is None:
-        raise RuntimeError('PASSWORD environment variable not set')
+        raise RuntimeError('PASSWORD 环境变量未设置')
 
     while True:
         try:
@@ -27,5 +27,5 @@ if __name__ == '__main__':
             time.sleep(60)
         except Exception as err:
             logger.error(
-                f'run controller failed {err}. {traceback.format_exc()}'
+                f'运行控制器失败 {err}. {traceback.format_exc()}'
             )

@@ -15,21 +15,21 @@ class IpmiTool:
 
         if result.returncode != 0:
             raise RuntimeError(
-                f'execute command {cmd} failed:{result.stderr}'
+                f'执行命令 {cmd} 失败:{result.stderr}'
             )
 
         return result.stdout
 
     def mc_info(self) -> str:
         """
-        execute ipmitool command mc info
+        执行 ipmitool 命令 mc info
         :return:
         """
         return self.run_cmd(cmd='mc info')
 
     def sensor(self) -> str:
         """
-        execute ipmitool command sensor
+        执行 ipmitool 命令 sensor
         :return:
         """
         return self.run_cmd(cmd='sensor')
