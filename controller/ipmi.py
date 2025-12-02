@@ -14,29 +14,38 @@ class IpmiTool:
     def run_cmd(self, cmd: str) -> str:
         basecmd = f'ipmitool -H {self.host} -I lanplus -U {self.username} -P {self.password}'
         command = f'{basecmd} {cmd}'
-        retry_count = 3  # 设置重试次数
+        retry_count = 5  # 增加重试次数以应对网络波动
         for attempt in range(retry_count):
             try:
                 # print(f"Executing command: {command}")  # 添加调试信息
-                result = subprocess.run(command, shell=True, capture_output=True, text=True, timeout=30)
+                result = subprocess.run(command, shell=True, capture_output=True, text=True, timeout=60)  # 增加超时时间
 
                 if result.returncode != 0:
+                    error_msg = result.stderr.strip()
+                    # 检查是否是网络连接问题
+                    if "Unable to establish IPMI" in error_msg or "session" in error_msg:
+                        logger.warning(f'IPMI会话建立失败 (尝试 {attempt + 1}/{retry_count}): {error_msg}')
+                        if attempt < retry_count - 1:
+                            time.sleep(10)  # 网络问题需要更长的等待时间
+                            continue
                     raise RuntimeError(
-                        f'IPMI 命令执行失败: {cmd}\n错误详情: {result.stderr}'  # 更清晰的错误提示
+                        f'IPMI 命令执行失败: {cmd}\n错误详情: {error_msg}'  # 更清晰的错误提示
                     )
-                    # 添加网络和认证排查提示
-                    print("请检查以下内容：")
-                    print("1. 确保 BMC 地址可访问（ping 测试或网络配置）。")
-                    print("2. 验证用户名、密码是否正确。")
-                    print("3. 检查目标设备的 IPMI 功能是否启用。")
 
                 return result.stdout
             except subprocess.TimeoutExpired:
+                logger.warning(f'命令超时 (尝试 {attempt + 1}/{retry_count})')
                 if attempt < retry_count - 1:
-                    logger.warning(f'命令超时，正在重试... (尝试次数 {attempt + 1}/{retry_count})')
-                    time.sleep(5)  # 每次重试前等待 5 秒
+                    logger.warning(f'正在重试... (尝试次数 {attempt + 1}/{retry_count})')
+                    time.sleep(10)  # 每次重试前等待更长时间
                 else:
                     raise RuntimeError('IPMI 命令超时。请检查网络连接或服务器状态。')  # 更明确的错误提示
+            except Exception as e:
+                logger.warning(f'IPMI命令执行异常 (尝试 {attempt + 1}/{retry_count}): {str(e)}')
+                if attempt < retry_count - 1:
+                    time.sleep(10)  # 网络问题需要更长的等待时间
+                else:
+                    raise e
 
     def mc_info(self) -> str:
         """
