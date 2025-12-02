@@ -26,12 +26,12 @@ jobs:
         username: ${{ secrets.DOCKER_USER }}
         password: ${{ secrets.DOCKER_PASS }}
 
-    - name: Login to Alibaba Cloud Container Registry
+    - name: Login to Harbor Registry
       uses: docker/login-action@v2
       with:
-        registry: registry.cn-huhehaote.aliyuncs.com
-        username: ${{ secrets.ALIBABA_USERNAME }}
-        password: ${{ secrets.ALIBABA_PASSWORD }}
+        registry: harbor.ay.lc
+        username: ${{ secrets.HARBOR_USERNAME }}
+        password: ${{ secrets.HARBOR_PASSWORD }}
 
     - name: Extract metadata (tags, labels) for Docker
       id: meta
@@ -39,7 +39,7 @@ jobs:
       with:
         images: |
           joestar817/dell-fans-controller-docker
-          registry.cn-huhehaote.aliyuncs.com/lkddi_image/dell-fans-controller-docker
+          harbor.ay.lc/library/dell-fans-controller
         tags: |
           type=ref,event=branch
           type=ref,event=pr
