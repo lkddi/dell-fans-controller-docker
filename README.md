@@ -16,8 +16,13 @@
 
 2. 运行以下命令
  ```
-   docker run -d --name=dell-fans-controller-docker  -e HOST=192.168.1.1 -e USERNAME=root -e PASSWORD=password --restart always joestar817/dell-fans-controller-docker:latest
+   docker run -d --name=dell-fans-controller-docker  -e HOST=192.168.1.1 -e USERNAME=root -e PASSWORD=password --restart always registry.cn-huhehaote.aliyuncs.com/lkddi_image/dell-fans-controller-docker:latest
    ```
+
+、、、
+docker run -d --name=dell-fans-controller-docker  -e HOST=10.10.11.11 -e USERNAME=root -e PASSWORD=ddmabc123 --restart always registry.cn-huhehaote.aliyuncs.com/lkddi_image/dell-fans-controller-docker:latest
+、、、
+   
 
 #### 代码说明
 

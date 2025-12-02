@@ -7,21 +7,20 @@ from controller.logger import logger
 
 if __name__ == '__main__':
 
-    host = os.getenv('HOST')
-    username = os.getenv('USERNAME')
-    password = os.getenv('PASSWORD')
-
+    host = "10.10.11.11" #os.getenv('HOST')                                                    │
+    username = "root" #os.getenv('USERNAME')                                                   │
+    password = "ddmabc123" #os.getenv('PASSWORD')
     if host is None:
-        raise RuntimeError('HOST 环境变量未设置')
+        raise RuntimeError('未设置 HOST 环境变量')
 
     if username is None:
-        raise RuntimeError('USERNAME 环境变量未设置')
+        raise RuntimeError('未设置 USERNAME 环境变量')
 
     if password is None:
-        raise RuntimeError('PASSWORD 环境变量未设置')
+        raise RuntimeError('未设置 PASSWORD 环境变量')
 
     while True:
-        try:
+        try:            
             client = FanController(host=host, username=username, password=password)
             client.run()
             time.sleep(60)
