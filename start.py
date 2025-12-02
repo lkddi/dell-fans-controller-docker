@@ -7,16 +7,16 @@ from controller.logger import logger
 
 if __name__ == '__main__':
 
-    host = "192.168.1.100" #os.getenv('HOST')                                                    │
-    username = "root" #os.getenv('USERNAME')                                                   │
-    password = "your_idrac_password" #os.getenv('PASSWORD')
-    if host is None:
+    host = os.getenv('HOST', "192.168.1.100")
+    username = os.getenv('USERNAME', "root")
+    password = os.getenv('PASSWORD', "your_idrac_password")
+    if not host:
         raise RuntimeError('未设置 HOST 环境变量')
 
-    if username is None:
+    if not username:
         raise RuntimeError('未设置 USERNAME 环境变量')
 
-    if password is None:
+    if not password:
         raise RuntimeError('未设置 PASSWORD 环境变量')
 
     while True:
