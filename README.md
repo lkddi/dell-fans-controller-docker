@@ -28,6 +28,15 @@ docker run -d --name=dell-fans-controller-docker  -e HOST=10.10.11.11 -e USERNAM
 
 脚本首先通过ipmitool来获取 **进出口温度和CPU核心温度**，再通过其中的最大值来判断调整服务器的风扇转速
 
+### Docker 镜像构建
+
+本项目通过 GitHub Actions 自动构建 Docker 镜像，并推送到 Docker Hub 和阿里云容器镜像服务。
+
+- Docker Hub: `joestar817/dell-fans-controller-docker:latest`
+- 阿里云: `registry.cn-huhehaote.aliyuncs.com/lkddi_image/dell-fans-controller-docker:latest`
+
+镜像支持多架构 (linux/amd64, linux/arm64)
+
 运行间隔为每60秒运行一次
 
 | 温度(℃) | 风扇转速(%)            |
