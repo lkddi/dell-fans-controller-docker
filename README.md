@@ -22,6 +22,12 @@ Dockerized fan controller for Dell iDRAC/IPMI servers. It reads temperature sens
 - 对临时 IPMI 会话失败进行重试，并在控制器异常后等待下一轮。
 - Docker 镜像支持 `linux/amd64` 和 `linux/arm64`。
 
+## Tested Environment / 已测试环境
+
+This project has been tested on Dell PowerEdge R730xd with iDRAC8.
+
+本项目已在 Dell PowerEdge R730xd 服务器的 iDRAC8 环境中测试使用。
+
 ## Quick Start / 快速开始
 
 Before running, enable IPMI over LAN in iDRAC and make sure the host running this container can reach the iDRAC management IP.
