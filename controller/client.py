@@ -36,7 +36,8 @@ class FanController:
             return -1  # 表示应切换到自动模式
 
     def run(self):
-        temperature: int = max(self.ipmi.temperature())
+        sensor_data = self.ipmi.sensor()
+        temperature: int = max(self.ipmi.temperature(sensor_data))
         logger.info(f'当前最高温度: {temperature}')
 
         required_speed = self.get_required_fan_speed(temperature)
@@ -59,18 +60,12 @@ class FanController:
                 self.is_auto_mode = False
 
             # 获取当前风扇转速
-            current_speed = self.ipmi.get_fan_duty_cycle()
+            current_speed = self.ipmi.get_fan_duty_cycle(sensor_data)
 
             # 只有在当前转速与所需转速不同时才调整
             # 如果无法获取当前转速（返回-1），则检查是否已记录之前设置的速度
             if current_speed == -1:
-                # 如果无法获取当前转速，但上次设置的速度与所需速度不同，则更新
-                if self.last_set_speed != required_speed:
-                    logger.info(f'无法获取当前风扇转速，但上次设置({self.last_set_speed}%)与需要({required_speed}%)不同，进行设置')
-                    self.set_fan_speed(required_speed)
-                    self.last_set_speed = required_speed
-                else:
-                    logger.info(f'无法获取当前风扇转速，且未改变设置，无需操作')
+                logger.warning('无法获取当前风扇转速，为避免IPMI会话不稳定时盲目写入，本轮跳过设置')
             elif current_speed != required_speed:
                 logger.info(f'当前风扇转速: {current_speed}%, 需要转速: {required_speed}%')
                 self.set_fan_speed(required_speed)

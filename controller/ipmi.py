@@ -61,12 +61,14 @@ class IpmiTool:
         """
         return self.run_cmd(cmd='sdr')
 
-    def temperature(self) -> list:
+    def temperature(self, data: str = None) -> list:
         """
-        get current temperature
+        获取当前温度传感器列表
         :return:
         """
-        data = self.sensor()
+        if data is None:
+            data = self.sensor()
+
         temperatures = []
         import re
 
@@ -108,9 +110,9 @@ class IpmiTool:
                         continue
         return fan_speeds
 
-    def get_fan_duty_cycle(self) -> int:
+    def get_fan_duty_cycle(self, sensor_data: str = None) -> int:
         """
-        get current fan duty cycle/percentage
+        获取当前风扇占空比/百分比
         :return: current fan duty cycle in percentage
         """
         try:
@@ -134,7 +136,7 @@ class IpmiTool:
 
         # If raw command fails or returns 0, get fan speeds from sensor data and convert to approximate percentage
         try:
-            data = self.sensor()
+            data = sensor_data if sensor_data is not None else self.sensor()
             fan_rpm_values = []
             import re
 
