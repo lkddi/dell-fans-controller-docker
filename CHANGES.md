@@ -8,7 +8,7 @@
 - 移除代码中的默认 iDRAC 地址、账号和密码，改为必须通过环境变量配置。
 - 增加 `.env.example`、`.dockerignore` 和 MIT License。
 - 清理 Python 缓存文件，避免将运行产物提交到仓库。
-- Docker 运行镜像切换到 Alpine，只安装 `python3`、`ipmitool` 和时区数据，降低镜像体积。
+- Docker 运行镜像切换到 Debian slim，只安装 `python3`、`ipmitool` 和时区数据，在降低体积的同时保留更好的IPMI兼容性。
 
 ## Previous Improvements
 

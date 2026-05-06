@@ -25,7 +25,8 @@ class IpmiTool:
                 result = subprocess.run(command, shell=True, capture_output=True, text=True, timeout=60)  # 增加超时时间
 
                 if result.returncode != 0:
-                    error_msg = result.stderr.strip()
+                    # 部分ipmitool版本会把错误输出到stdout，或只返回退出码但stderr为空
+                    error_msg = result.stderr.strip() or result.stdout.strip() or f'命令退出码: {result.returncode}'
                     # 检查是否是网络连接问题
                     if "Unable to establish IPMI" in error_msg or "session" in error_msg:
                         logger.warning(f'IPMI会话建立失败 (尝试 {attempt + 1}/{retry_count}): {error_msg}')
