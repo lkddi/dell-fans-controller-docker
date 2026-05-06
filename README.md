@@ -72,7 +72,6 @@ docker run -d --name=dell-fans-controller \
 ### 镜像仓库
 
 - Docker Hub: `lkddi/dell-fans-controller:latest`
-- Harbor: `harbor.ay.lc/library/dell-fans-controller:latest`
 
 ### 自动构建
 

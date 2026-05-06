@@ -25,9 +25,9 @@ class FanController:
         :return: 对应的风扇转速百分比，如果应该切换到自动模式则返回-1
         """
         if 0 < temperature <= 50:
-            return 15
-        elif 50 < temperature <= 55:
             return 20
+        elif 50 < temperature <= 55:
+            return 25
         elif 55 < temperature <= 60:
             return 30
         elif 60 < temperature <= 65:
