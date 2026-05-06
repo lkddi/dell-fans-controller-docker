@@ -1,5 +1,5 @@
 FROM ubuntu:22.04
-LABEL maintainer="joestar817@foxmail.com"
+LABEL maintainer="lkddi"
 
 # 安装依赖并设置时区
 RUN apt update && apt install -y \
@@ -11,8 +11,8 @@ RUN apt update && apt install -y \
     && echo 'Asia/Shanghai' > /etc/timezone
 
 # 复制应用文件
-COPY . /dell-fans-controller-docker
-WORKDIR /dell-fans-controller-docker
+COPY . /dell-fans-controller
+WORKDIR /dell-fans-controller
 
 # 如果有requirements.txt则安装Python依赖
 # COPY requirements.txt .
@@ -23,4 +23,3 @@ WORKDIR /dell-fans-controller-docker
 
 # 设置启动命令
 CMD ["python3", "start.py"]
-

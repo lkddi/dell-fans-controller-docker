@@ -1,21 +1,17 @@
-# 修复日志
+# Changelog / 更新日志
 
-## 问题1：温度读取不准确
-- **问题**：之前的代码无法正确解析IPMI传感器输出中的温度值
-- **解决方案**：
-  - 修改了`sensor()`方法，使用`ipmitool sdr`命令获取更准确的传感器数据
-  - 更新了`temperature()`方法，使用正则表达式正确提取温度值
-- **结果**：现在能够准确读取所有温度传感器数据
+## Unreleased
 
-## 问题2：风扇转速读取不准确
-- **问题**：IPMI原始命令无法返回设置的风扇占空比值
-- **解决方案**：
-  - 通过校准实验确定了RPM与百分比的转换关系：20%设置对应4800 RPM
-  - 实现了基于RPM的百分比估算算法
-  - 添加了适当的四舍五入逻辑以匹配典型的5%步进
-- **结果**：现在能够准确估算当前风扇转速百分比
+- 准备公开开源发布流程，Docker Hub 镜像统一为 `lkddi/dell-fans-controller`。
+- GitHub Actions 改为 PR/master 构建验证，`v*` tag 才发布 Docker 镜像。
+- 新增 Docker、Docker Compose 和本机 Python 三种运行说明。
+- 移除代码中的默认 iDRAC 地址、账号和密码，改为必须通过环境变量配置。
+- 增加 `.env.example`、`.dockerignore` 和 MIT License。
+- 清理 Python 缓存文件，避免将运行产物提交到仓库。
 
-## 技术细节
-- Dell服务器的IPMI系统在手动风扇模式下，可通过`ipmitool sdr`命令获取准确的RPM值
-- 风扇转速百分比通过公式计算：`(current_rpm / theoretical_max_rpm) * 100`
-- 理论最大RPM基于校准数据：`4800 RPM * (100/20) = 24000 RPM`
+## Previous Improvements
+
+- 使用 `ipmitool sdr` 读取温度和风扇传感器数据。
+- 根据最高温度自动选择风扇转速，高温时交还 iDRAC 自动模式。
+- 对 IPMI 会话失败和命令超时增加重试和日志。
+- 使用 RPM 估算风扇百分比，降低部分 Dell 机型 raw 命令返回 0 时的影响。

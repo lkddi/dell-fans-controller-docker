@@ -3,7 +3,10 @@ import time
 import re
 from controller.logger import logger
 
+
+# IPMI命令封装器：负责调用ipmitool读取传感器并设置Dell风扇
 class IpmiTool:
+    # 初始化iDRAC连接参数
     def __init__(self, host: str, username: str, password: str):
         if not host or not username or not password:
             raise ValueError("host, username and password must be provided")
@@ -11,6 +14,7 @@ class IpmiTool:
         self.username = username
         self.password = password
 
+    # 执行ipmitool命令并处理重试、超时和会话异常
     def run_cmd(self, cmd: str) -> str:
         basecmd = f'ipmitool -H {self.host} -I lanplus -U {self.username} -P {self.password}'
         command = f'{basecmd} {cmd}'
@@ -47,20 +51,23 @@ class IpmiTool:
                 else:
                     raise e
 
+    # 读取iDRAC控制器基本信息
     def mc_info(self) -> str:
         """
-        execute ipmitool command mc info
+        执行ipmitool mc info命令
         :return:
         """
         return self.run_cmd(cmd='mc info')
 
+    # 读取完整SDR传感器数据
     def sensor(self) -> str:
         """
-        execute ipmitool command sdr to get sensor data
+        执行ipmitool sdr命令获取传感器数据
         :return:
         """
         return self.run_cmd(cmd='sdr')
 
+    # 从SDR数据中解析温度传感器列表
     def temperature(self, data: str = None) -> list:
         """
         获取当前温度传感器列表
@@ -84,32 +91,30 @@ class IpmiTool:
 
         return temperatures
 
+    # 从SDR数据中解析风扇RPM列表
     def fan_speeds(self) -> list:
         """
-        get current fan speeds
-        :return: list of fan speeds in percentage
+        获取当前风扇RPM列表
+        :return: 风扇RPM列表
         """
         data = self.sensor()
         fan_speeds = []
 
         for line in data.splitlines():
             if 'Fan' in line and 'RPM' in line:
-                # Extract numeric value from line - format is typically "Fan1     | 1234 | RPM  |"
+                # 从传感器行中提取RPM数值，典型格式为 "Fan1 RPM | 4800 RPM | ok"
                 parts = line.split('|')
                 if len(parts) >= 2:
                     try:
-                        # Extract the value and convert RPM to percentage if possible
-                        # For Dell servers, we may need to get duty cycle instead
                         value_str = parts[1].strip()
                         if value_str.isdigit():
                             rpm = int(value_str)
-                            # Placeholder: we might need to use raw commands to get duty cycle
-                            # For now, return the raw value
                             fan_speeds.append(rpm)
                     except ValueError:
                         continue
         return fan_speeds
 
+    # 获取当前风扇占空比，raw命令不可用时用RPM估算
     def get_fan_duty_cycle(self, sensor_data: str = None) -> int:
         """
         获取当前风扇占空比/百分比
@@ -177,9 +182,10 @@ class IpmiTool:
 
         return -1  # Return -1 if unable to determine
 
+    # 切换风扇自动/手动模式
     def switch_fan_mode(self, auto: bool):
         """
-        switch the fan mode
+        切换风扇模式
         :param auto:
         :return:
         """
@@ -187,9 +193,10 @@ class IpmiTool:
         auto_cmd = 'raw 0x30 0x30 0x01 0x01'
         return self.run_cmd(cmd=auto_cmd) if auto else self.run_cmd(cmd=manual_cmd)
 
+    # 设置手动风扇速度百分比
     def set_fan_speed(self, speed: int):
         """
-        set fan speed
+        设置风扇速度
         :param speed:
         :return:
         """

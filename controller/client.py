@@ -3,8 +3,10 @@ from controller.logger import logger
 from controller.ipmi import IpmiTool
 
 
+# 风扇控制器：根据iDRAC温度传感器结果自动切换风扇模式和转速
 class FanController:
 
+    # 初始化控制器并记录iDRAC连接信息
     def __init__(self, host: str, username: str, password: str):
         self.host = host
         self.username = username
@@ -14,10 +16,12 @@ class FanController:
         self.last_set_speed = None  # 记录最后设置的风扇速度
         self.is_auto_mode = False   # 记录当前是否为自动模式
 
+    # 设置手动风扇速度
     def set_fan_speed(self, speed: int):
         logger.info(f'设置风扇速度: {speed}%')
         self.ipmi.set_fan_speed(speed)
 
+    # 根据最高温度计算目标风扇转速
     def get_required_fan_speed(self, temperature: int) -> int:
         """
         根据温度确定所需的风扇转速
@@ -35,7 +39,9 @@ class FanController:
         else:
             return -1  # 表示应切换到自动模式
 
+    # 执行一次完整的温度读取和风扇控制周期
     def run(self):
+        # 同一轮控制周期复用一次SDR结果，减少iDRAC会话压力
         sensor_data = self.ipmi.sensor()
         temperature: int = max(self.ipmi.temperature(sensor_data))
         logger.info(f'当前最高温度: {temperature}')

@@ -5,5 +5,4 @@ help: ## show help message
 
 
 build: ## build docker image
-	docker build -t dell-fans-controller-docker .
-
+	docker build -t lkddi/dell-fans-controller:test .

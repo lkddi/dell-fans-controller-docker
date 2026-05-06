@@ -1,11 +1,7 @@
-version: "3"
-
 services:
-  dell-fans-controller-docker:
+  dell-fans-controller:
     image: lkddi/dell-fans-controller:latest
-    container_name: dell-fans-controller-docker
+    container_name: dell-fans-controller
     restart: always
-    environment:
-      HOST: 192.168.1.1
-      USERNAME: root
-      PASSWORD: password
+    env_file:
+      - .env
