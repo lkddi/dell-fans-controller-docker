@@ -42,6 +42,7 @@ class FanController:
         self.use_raw_fan_duty = use_raw_fan_duty
         self.last_set_speed = None  # 记录最后设置的风扇速度
         self.is_auto_mode = False   # 记录当前是否为自动模式
+        self.is_manual_mode = False  # 记录当前是否已切换到手动模式
 
     # 解析温控规则配置，格式为 "50:20,55:25,60:30,65:40"
     def parse_fan_speed_steps(self, steps: str) -> tuple:
@@ -92,7 +93,12 @@ class FanController:
     # 设置手动风扇速度
     def set_fan_speed(self, speed: int):
         logger.info(f'设置风扇速度: {speed}%')
-        self.ipmi.set_fan_speed(speed)
+        if not self.is_manual_mode:
+            # 首次进入手动风扇控制时才切换模式，避免每次调速都多发一次raw命令
+            self.ipmi.switch_fan_mode(auto=False)
+            self.is_manual_mode = True
+
+        self.ipmi.set_fan_speed(speed, ensure_manual=False)
 
     # 根据最高温度计算目标风扇转速
     def get_required_fan_speed(self, temperature: int) -> int:
@@ -122,6 +128,7 @@ class FanController:
                 logger.info(f'切换风扇为自动模式')
                 self.ipmi.switch_fan_mode(auto=True)
                 self.is_auto_mode = True
+                self.is_manual_mode = False
                 self.last_set_speed = None  # 重置手动设置的速度
             else:
                 logger.info(f'当前已是自动模式，无需操作')
@@ -132,6 +139,7 @@ class FanController:
                 logger.info(f'从自动模式切换到手动模式')
                 self.ipmi.switch_fan_mode(auto=False)
                 self.is_auto_mode = False
+                self.is_manual_mode = True
 
             # 获取当前风扇转速
             current_speed = self.ipmi.get_fan_duty_cycle(sensor_data, use_raw=self.use_raw_fan_duty)

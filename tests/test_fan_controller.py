@@ -1,4 +1,5 @@
 import unittest
+from unittest.mock import Mock
 
 from controller.client import FanController
 
@@ -53,6 +54,16 @@ class FanControllerConfigTest(unittest.TestCase):
         controller = self.make_controller()
 
         self.assertFalse(controller.use_raw_fan_duty)
+
+    def test_set_fan_speed_switches_manual_mode_only_once(self):
+        controller = self.make_controller()
+        controller.ipmi = Mock()
+
+        controller.set_fan_speed(30)
+        controller.set_fan_speed(40)
+
+        controller.ipmi.switch_fan_mode.assert_called_once_with(auto=False)
+        self.assertEqual(controller.ipmi.set_fan_speed.call_count, 2)
 
 
 if __name__ == '__main__':

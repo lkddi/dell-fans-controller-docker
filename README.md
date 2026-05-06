@@ -75,6 +75,7 @@ PASSWORD=your_idrac_password
 FAN_SPEED_STEPS=50:20,55:25,60:30,65:40
 CONTROL_INTERVAL_SECONDS=120
 ERROR_INTERVAL_SECONDS=120
+IPMI_FAILURE_BACKOFF_SECONDS=300
 IPMI_RETRY_COUNT=5
 IPMI_RETRY_DELAY_SECONDS=20
 IPMI_TIMEOUT_SECONDS=60
@@ -120,6 +121,7 @@ python3 start.py
 | `FAN_SPEED_STEPS` | No | Temperature-to-speed rules. Default: `50:20,55:25,60:30,65:40`. / 温度和风扇转速规则，默认值：`50:20,55:25,60:30,65:40`。 |
 | `CONTROL_INTERVAL_SECONDS` | No | Normal control interval. Default: `120`. / 正常控制间隔，默认 `120` 秒。 |
 | `ERROR_INTERVAL_SECONDS` | No | Wait time after a failed control cycle. Default: same as `CONTROL_INTERVAL_SECONDS`. / 控制周期失败后的等待时间，默认等于正常控制间隔。 |
+| `IPMI_FAILURE_BACKOFF_SECONDS` | No | Cooldown after all IPMI retries fail. Default: `300`. / 单轮 IPMI 重试全部失败后的冷却时间，默认 `300` 秒。 |
 | `IPMI_RETRY_COUNT` | No | Retry count for each IPMI command. Default: `5`. / 单条 IPMI 命令重试次数，默认 `5`。 |
 | `IPMI_RETRY_DELAY_SECONDS` | No | Wait time between IPMI retries. Default: `20`. / IPMI 重试间隔，默认 `20` 秒。 |
 | `IPMI_TIMEOUT_SECONDS` | No | Subprocess timeout for each IPMI command. Default: `60`. / 单次 IPMI 命令超时时间，默认 `60` 秒。 |
@@ -182,7 +184,9 @@ ipmitool -H 192.168.1.100 -I lanplus -U root -P your_idrac_password sdr
 
 Common issues / 常见问题：
 
-- `Unable to establish IPMI v2 / RMCP+ session`: iDRAC IPMI service may be busy or unstable. Check network latency, duplicate monitoring scripts, and consider resetting iDRAC with `mc reset cold`.
+- `Unable to establish IPMI v2 / RMCP+ session`: iDRAC IPMI service may be busy or unstable. Occasional retries are expected on some iDRAC8 systems. If all retries fail, the controller skips that cycle and waits for `IPMI_FAILURE_BACKOFF_SECONDS`.
+- `Unable to establish IPMI v2 / RMCP+ session`：iDRAC IPMI 服务可能繁忙或不稳定。部分 iDRAC8 偶发重试是正常现象；如果单轮重试全部失败，控制器会跳过本轮并按 `IPMI_FAILURE_BACKOFF_SECONDS` 冷却等待。
+- Frequent IPMI session failures / 频繁 IPMI 会话失败：check network latency, duplicate monitoring scripts or duplicate containers, and consider resetting iDRAC with `mc reset cold`.
 - Connection failed / 连接失败：确认容器主机能访问 iDRAC 管理 IP。
 - Authentication failed / 认证失败：确认用户名、密码和 IPMI 权限。
 - Permission denied / 权限不足：建议使用专用 iDRAC 用户，并授予 IPMI 控制权限。

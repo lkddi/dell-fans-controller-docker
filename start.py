@@ -1,6 +1,5 @@
 import os
 import time
-import traceback
 
 from controller.client import FanController
 from controller.logger import logger
@@ -51,6 +50,7 @@ if __name__ == '__main__':
         fan_speed_steps = os.getenv('FAN_SPEED_RULES')
     control_interval = get_int_env('CONTROL_INTERVAL_SECONDS', 120)
     error_interval = get_int_env('ERROR_INTERVAL_SECONDS', control_interval)
+    ipmi_failure_backoff = get_int_env('IPMI_FAILURE_BACKOFF_SECONDS', 300)
     ipmi_retry_count = get_int_env('IPMI_RETRY_COUNT', 5)
     ipmi_retry_delay = get_int_env('IPMI_RETRY_DELAY_SECONDS', 20)
     ipmi_timeout = get_int_env('IPMI_TIMEOUT_SECONDS', 60)
@@ -81,9 +81,13 @@ if __name__ == '__main__':
             # 执行一次温度读取和风扇控制周期
             client.run()
             time.sleep(control_interval)
-        except Exception as err:
-            logger.error(
-                f'运行控制器失败 {err}. {traceback.format_exc()}'
+        except RuntimeError as err:
+            logger.warning(
+                f'本轮IPMI控制失败，跳过本轮并等待 {ipmi_failure_backoff} 秒: {err}'
             )
+            # 连续会话失败时给iDRAC更长恢复窗口，避免马上进入下一轮重试
+            time.sleep(ipmi_failure_backoff)
+        except Exception as err:
+            logger.error(f'运行控制器失败 {err}', exc_info=True)
             # iDRAC会话异常时等待下一轮，避免连续请求压垮IPMI服务
             time.sleep(error_interval)

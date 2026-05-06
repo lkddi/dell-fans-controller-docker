@@ -198,10 +198,11 @@ class IpmiTool:
         return self.run_cmd(cmd=auto_cmd) if auto else self.run_cmd(cmd=manual_cmd)
 
     # 设置手动风扇速度百分比
-    def set_fan_speed(self, speed: int):
+    def set_fan_speed(self, speed: int, ensure_manual: bool = True):
         """
         设置风扇速度
         :param speed:
+        :param ensure_manual:
         :return:
         """
         if speed < 10 or speed > 100:
@@ -209,6 +210,8 @@ class IpmiTool:
                 'speed must be between 10 and 100'
             )
 
-        self.switch_fan_mode(auto=False)
+        if ensure_manual:
+            self.switch_fan_mode(auto=False)
+
         base_cmd = 'raw 0x30 0x30 0x02 0xff'
         return self.run_cmd(cmd=f'{base_cmd} {hex(speed)}')
