@@ -47,6 +47,13 @@ docker run -d --name dell-fans-controller \
   -e USERNAME=root \
   -e PASSWORD=your_idrac_password \
   -e FAN_SPEED_STEPS=50:20,55:25,60:30,65:40 \
+  -e CONTROL_INTERVAL_SECONDS=120 \
+  -e ERROR_INTERVAL_SECONDS=120 \
+  -e IPMI_FAILURE_BACKOFF_SECONDS=300 \
+  -e IPMI_RETRY_COUNT=5 \
+  -e IPMI_RETRY_DELAY_SECONDS=20 \
+  -e IPMI_TIMEOUT_SECONDS=60 \
+  -e USE_RAW_FAN_DUTY=false \
   lkddi/dell-fans-controller:latest
 ```
 
@@ -88,6 +95,10 @@ Start the service / 启动服务：
 docker compose up -d
 ```
 
+Docker Compose reads all options from `.env`, including fan policy and IPMI retry settings.
+
+Docker Compose 会从 `.env` 读取全部配置，包括温控档位和 IPMI 重试参数。
+
 ### Run with Python / 直接使用 Python 运行
 
 Install dependencies / 安装依赖：
@@ -108,6 +119,13 @@ export HOST=192.168.1.100
 export USERNAME=root
 export PASSWORD=your_idrac_password
 export FAN_SPEED_STEPS=50:20,55:25,60:30,65:40
+export CONTROL_INTERVAL_SECONDS=120
+export ERROR_INTERVAL_SECONDS=120
+export IPMI_FAILURE_BACKOFF_SECONDS=300
+export IPMI_RETRY_COUNT=5
+export IPMI_RETRY_DELAY_SECONDS=20
+export IPMI_TIMEOUT_SECONDS=60
+export USE_RAW_FAN_DUTY=false
 python3 start.py
 ```
 
