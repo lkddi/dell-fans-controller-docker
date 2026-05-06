@@ -4,6 +4,10 @@ Dockerized fan controller for Dell iDRAC/IPMI servers. It reads temperature sens
 
 通过 iDRAC/IPMI 自动读取 Dell 服务器温度，并根据温度调整风扇转速。适合希望降低噪音、但仍保留高温自动保护的家庭实验室、机房和 NAS 场景。
 
+This project is upgraded and developed based on [joestar817/dell-fans-controller-docker](https://github.com/joestar817/dell-fans-controller-docker).
+
+本项目基于 [joestar817/dell-fans-controller-docker](https://github.com/joestar817/dell-fans-controller-docker) 升级开发。
+
 > Warning: manual fan control can cause overheating if configured incorrectly. Test with care and keep iDRAC automatic mode available as fallback.
 >
 > 警告：手动风扇控制配置不当可能导致过热。请先确认服务器散热状态，并保留 iDRAC 自动模式作为兜底。

@@ -3,6 +3,7 @@
 ## Unreleased
 
 - 准备公开开源发布流程，Docker Hub 镜像统一为 `lkddi/dell-fans-controller`。
+- 说明项目基于 `joestar817/dell-fans-controller-docker` 升级开发。
 - GitHub Actions 改为 PR 构建验证，`v*` tag 才发布 Docker 镜像。
 - 新增 Docker、Docker Compose 和本机 Python 三种运行说明。
 - 移除代码中的默认 iDRAC 地址、账号和密码，改为必须通过环境变量配置。
