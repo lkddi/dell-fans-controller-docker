@@ -36,6 +36,7 @@ docker run -d --name dell-fans-controller \
   -e HOST=192.168.1.100 \
   -e USERNAME=root \
   -e PASSWORD=your_idrac_password \
+  -e FAN_SPEED_STEPS=50:20,55:25,60:30,65:40 \
   lkddi/dell-fans-controller:latest
 ```
 
@@ -61,6 +62,7 @@ cp .env.example .env
 HOST=192.168.1.100
 USERNAME=root
 PASSWORD=your_idrac_password
+FAN_SPEED_STEPS=50:20,55:25,60:30,65:40
 ```
 
 Start the service / 启动服务：
@@ -88,6 +90,7 @@ Run / 运行：
 export HOST=192.168.1.100
 export USERNAME=root
 export PASSWORD=your_idrac_password
+export FAN_SPEED_STEPS=50:20,55:25,60:30,65:40
 python3 start.py
 ```
 
@@ -98,6 +101,7 @@ python3 start.py
 | `HOST` | Yes | iDRAC management IP address. / iDRAC 管理 IP。 |
 | `USERNAME` | Yes | iDRAC username with IPMI permission. / 有 IPMI 权限的 iDRAC 用户名。 |
 | `PASSWORD` | Yes | iDRAC password. / iDRAC 密码。 |
+| `FAN_SPEED_STEPS` | No | Temperature-to-speed rules. Default: `50:20,55:25,60:30,65:40`. / 温度和风扇转速规则，默认值：`50:20,55:25,60:30,65:40`。 |
 
 The application does not include default credentials. Missing variables will stop startup with a clear error.
 
@@ -117,6 +121,30 @@ The controller reads all temperature sensors and uses the highest value.
 | `60-65 C` | `40%` |
 | `>65 C` | iDRAC automatic mode / iDRAC 自动模式 |
 
+Customize the policy with `FAN_SPEED_STEPS`. Each item uses `temperature:speed`, separated by commas. The controller sorts thresholds from low to high. When the current highest temperature is greater than the last threshold, it switches to iDRAC automatic mode.
+
+可以通过 `FAN_SPEED_STEPS` 自定义温控策略。每一项格式为 `温度:转速`，多项用英文逗号分隔。控制器会按温度阈值从低到高排序；当最高温度超过最后一个阈值时，自动切回 iDRAC 自动模式。
+
+Invalid values stop startup with a clear error. Fan speed must be an integer from `10` to `100`, and temperature thresholds cannot be duplicated.
+
+配置错误会在启动时直接报错退出。风扇转速必须是 `10` 到 `100` 的整数，温度阈值不能重复。
+
+Example / 示例：
+
+```env
+FAN_SPEED_STEPS=45:20,55:30,62:45,70:60
+```
+
+This means / 含义：
+
+| Temperature / 温度 | Fan Speed / 风扇转速 |
+| --- | --- |
+| `0-45 C` | `20%` |
+| `45-55 C` | `30%` |
+| `55-62 C` | `45%` |
+| `62-70 C` | `60%` |
+| `>70 C` | iDRAC automatic mode / iDRAC 自动模式 |
+
 ## Troubleshooting / 故障排查
 
 Test IPMI manually first / 先手动测试 IPMI：
@@ -135,9 +163,9 @@ Common issues / 常见问题：
 
 ## Release / 发布新版本
 
-Docker images are published only from Git tags matching `v*`. Pull requests and `master` pushes only build and verify the image.
+Docker images are published only from Git tags matching `v*`. Pull requests build and verify the image, while direct `master` pushes do not trigger Docker builds.
 
-Docker 镜像只在推送 `v*` tag 时发布。PR 和 `master` 推送只做构建验证，不覆盖 `latest`。
+Docker 镜像只在推送 `v*` tag 时发布。PR 会做构建验证，直接推送 `master` 不触发 Docker 构建。
 
 ```bash
 git tag v1.0.0

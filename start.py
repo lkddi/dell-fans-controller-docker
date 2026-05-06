@@ -11,6 +11,10 @@ if __name__ == '__main__':
     host = os.getenv('HOST')
     username = os.getenv('USERNAME')
     password = os.getenv('PASSWORD')
+    # 优先读取新的温控档位变量，并兼容旧别名
+    fan_speed_steps = os.getenv('FAN_SPEED_STEPS')
+    if fan_speed_steps is None:
+        fan_speed_steps = os.getenv('FAN_SPEED_RULES')
     if not host:
         raise RuntimeError('未设置 HOST 环境变量')
 
@@ -21,7 +25,12 @@ if __name__ == '__main__':
         raise RuntimeError('未设置 PASSWORD 环境变量')
 
     # 复用控制器实例，避免每轮循环丢失上次设置状态
-    client = FanController(host=host, username=username, password=password)
+    client = FanController(
+        host=host,
+        username=username,
+        password=password,
+        fan_speed_steps=fan_speed_steps,
+    )
 
     while True:
         try:            

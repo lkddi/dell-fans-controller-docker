@@ -3,12 +3,13 @@
 ## Unreleased
 
 - 准备公开开源发布流程，Docker Hub 镜像统一为 `lkddi/dell-fans-controller`。
-- GitHub Actions 改为 PR/master 构建验证，`v*` tag 才发布 Docker 镜像。
+- GitHub Actions 改为 PR 构建验证，`v*` tag 才发布 Docker 镜像。
 - 新增 Docker、Docker Compose 和本机 Python 三种运行说明。
 - 移除代码中的默认 iDRAC 地址、账号和密码，改为必须通过环境变量配置。
 - 增加 `.env.example`、`.dockerignore` 和 MIT License。
 - 清理 Python 缓存文件，避免将运行产物提交到仓库。
 - Docker 运行镜像切换到 Debian slim，只安装 `python3`、`ipmitool` 和时区数据，在降低体积的同时保留更好的IPMI兼容性。
+- 新增 `FAN_SPEED_STEPS` 环境变量，允许用户通过 `.env` 自定义温度阈值和风扇转速档位。
 
 ## Previous Improvements
 
