@@ -15,13 +15,31 @@ DEFAULT_FAN_SPEED_STEPS = (
 class FanController:
 
     # 初始化控制器并记录iDRAC连接信息
-    def __init__(self, host: str, username: str, password: str, fan_speed_steps: str = None):
+    def __init__(
+        self,
+        host: str,
+        username: str,
+        password: str,
+        fan_speed_steps: str = None,
+        ipmi_retry_count: int = 5,
+        ipmi_retry_delay: int = 20,
+        ipmi_timeout: int = 60,
+        use_raw_fan_duty: bool = False,
+    ):
         self.host = host
         self.username = username
         self.password = password
 
-        self.ipmi = IpmiTool(self.host, self.username, self.password)
+        self.ipmi = IpmiTool(
+            self.host,
+            self.username,
+            self.password,
+            retry_count=ipmi_retry_count,
+            retry_delay=ipmi_retry_delay,
+            timeout=ipmi_timeout,
+        )
         self.fan_speed_steps = self.parse_fan_speed_steps(fan_speed_steps)
+        self.use_raw_fan_duty = use_raw_fan_duty
         self.last_set_speed = None  # 记录最后设置的风扇速度
         self.is_auto_mode = False   # 记录当前是否为自动模式
 
@@ -116,7 +134,7 @@ class FanController:
                 self.is_auto_mode = False
 
             # 获取当前风扇转速
-            current_speed = self.ipmi.get_fan_duty_cycle(sensor_data)
+            current_speed = self.ipmi.get_fan_duty_cycle(sensor_data, use_raw=self.use_raw_fan_duty)
 
             # 只有在当前转速与所需转速不同时才调整
             # 如果无法获取当前转速（返回-1），则检查是否已记录之前设置的速度

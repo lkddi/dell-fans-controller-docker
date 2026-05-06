@@ -7,31 +7,33 @@ from controller.logger import logger
 # IPMI命令封装器：负责调用ipmitool读取传感器并设置Dell风扇
 class IpmiTool:
     # 初始化iDRAC连接参数
-    def __init__(self, host: str, username: str, password: str):
+    def __init__(self, host: str, username: str, password: str, retry_count: int = 5, retry_delay: int = 20, timeout: int = 60):
         if not host or not username or not password:
             raise ValueError("host, username and password must be provided")
         self.host = host
         self.username = username
         self.password = password
+        self.retry_count = retry_count
+        self.retry_delay = retry_delay
+        self.timeout = timeout
 
     # 执行ipmitool命令并处理重试、超时和会话异常
     def run_cmd(self, cmd: str) -> str:
         basecmd = f'ipmitool -H {self.host} -I lanplus -U {self.username} -P {self.password}'
         command = f'{basecmd} {cmd}'
-        retry_count = 5  # 增加重试次数以应对网络波动
-        for attempt in range(retry_count):
+        for attempt in range(self.retry_count):
             try:
                 # print(f"Executing command: {command}")  # 添加调试信息
-                result = subprocess.run(command, shell=True, capture_output=True, text=True, timeout=60)  # 增加超时时间
+                result = subprocess.run(command, shell=True, capture_output=True, text=True, timeout=self.timeout)  # 控制单次命令最长等待时间
 
                 if result.returncode != 0:
                     # 部分ipmitool版本会把错误输出到stdout，或只返回退出码但stderr为空
                     error_msg = result.stderr.strip() or result.stdout.strip() or f'命令退出码: {result.returncode}'
                     # 检查是否是网络连接问题
                     if "Unable to establish IPMI" in error_msg or "session" in error_msg:
-                        logger.warning(f'IPMI会话建立失败 (尝试 {attempt + 1}/{retry_count}): {error_msg}')
-                        if attempt < retry_count - 1:
-                            time.sleep(10)  # 网络问题需要更长的等待时间
+                        logger.warning(f'IPMI会话建立失败 (尝试 {attempt + 1}/{self.retry_count}): {error_msg}')
+                        if attempt < self.retry_count - 1:
+                            time.sleep(self.retry_delay)  # 网络问题需要更长的等待时间
                             continue
                     raise RuntimeError(
                         f'IPMI 命令执行失败: {cmd}\n错误详情: {error_msg}'  # 更清晰的错误提示
@@ -39,16 +41,16 @@ class IpmiTool:
 
                 return result.stdout
             except subprocess.TimeoutExpired:
-                logger.warning(f'命令超时 (尝试 {attempt + 1}/{retry_count})')
-                if attempt < retry_count - 1:
-                    logger.warning(f'正在重试... (尝试次数 {attempt + 1}/{retry_count})')
-                    time.sleep(10)  # 每次重试前等待更长时间
+                logger.warning(f'命令超时 (尝试 {attempt + 1}/{self.retry_count})')
+                if attempt < self.retry_count - 1:
+                    logger.warning(f'正在重试... (尝试次数 {attempt + 1}/{self.retry_count})')
+                    time.sleep(self.retry_delay)  # 每次重试前等待更长时间
                 else:
                     raise RuntimeError('IPMI 命令超时。请检查网络连接或服务器状态。')  # 更明确的错误提示
             except Exception as e:
-                logger.warning(f'IPMI命令执行异常 (尝试 {attempt + 1}/{retry_count}): {str(e)}')
-                if attempt < retry_count - 1:
-                    time.sleep(10)  # 网络问题需要更长的等待时间
+                logger.warning(f'IPMI命令执行异常 (尝试 {attempt + 1}/{self.retry_count}): {str(e)}')
+                if attempt < self.retry_count - 1:
+                    time.sleep(self.retry_delay)  # 网络问题需要更长的等待时间
                 else:
                     raise e
 
@@ -116,29 +118,30 @@ class IpmiTool:
         return fan_speeds
 
     # 获取当前风扇占空比，raw命令不可用时用RPM估算
-    def get_fan_duty_cycle(self, sensor_data: str = None) -> int:
+    def get_fan_duty_cycle(self, sensor_data: str = None, use_raw: bool = False) -> int:
         """
         获取当前风扇占空比/百分比
         :return: current fan duty cycle in percentage
         """
-        try:
-            # Raw command to get current fan duty cycle
-            result = self.run_cmd('raw 0x30 0x31 0x01')
-            # Parse the hex result to get duty cycle
-            result_parts = result.strip().split()
-            if result_parts and len(result_parts) >= 1:
-                # The command should return a hex value representing the duty cycle
-                duty_cycle_hex = result_parts[-1]
-                duty_cycle = int(duty_cycle_hex, 16)
-                # Ensure the value is in valid range (0-100)
-                if 0 <= duty_cycle <= 100 and duty_cycle != 0:
-                    # If we get a reasonable value (not 0), return it
-                    return duty_cycle
-                elif duty_cycle == 0:
-                    # Value of 0 might indicate auto mode or that raw command doesn't return duty cycle on this system
-                    logger.info('原始命令返回0，尝试从RPM估算风扇百分比')
-        except Exception as e:
-            logger.warning(f'获取风扇占空比的原始命令失败: {e}')
+        if use_raw:
+            try:
+                # Raw command to get current fan duty cycle
+                result = self.run_cmd('raw 0x30 0x31 0x01')
+                # Parse the hex result to get duty cycle
+                result_parts = result.strip().split()
+                if result_parts and len(result_parts) >= 1:
+                    # The command should return a hex value representing the duty cycle
+                    duty_cycle_hex = result_parts[-1]
+                    duty_cycle = int(duty_cycle_hex, 16)
+                    # Ensure the value is in valid range (0-100)
+                    if 0 <= duty_cycle <= 100 and duty_cycle != 0:
+                        # If we get a reasonable value (not 0), return it
+                        return duty_cycle
+                    elif duty_cycle == 0:
+                        # Value of 0 might indicate auto mode or that raw command doesn't return duty cycle on this system
+                        logger.info('原始命令返回0，尝试从RPM估算风扇百分比')
+            except Exception as e:
+                logger.warning(f'获取风扇占空比的原始命令失败: {e}')
 
         # If raw command fails or returns 0, get fan speeds from sensor data and convert to approximate percentage
         try:

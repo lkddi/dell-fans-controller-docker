@@ -69,6 +69,12 @@ HOST=192.168.1.100
 USERNAME=root
 PASSWORD=your_idrac_password
 FAN_SPEED_STEPS=50:20,55:25,60:30,65:40
+CONTROL_INTERVAL_SECONDS=120
+ERROR_INTERVAL_SECONDS=120
+IPMI_RETRY_COUNT=5
+IPMI_RETRY_DELAY_SECONDS=20
+IPMI_TIMEOUT_SECONDS=60
+USE_RAW_FAN_DUTY=false
 ```
 
 Start the service / 启动服务：
@@ -108,10 +114,20 @@ python3 start.py
 | `USERNAME` | Yes | iDRAC username with IPMI permission. / 有 IPMI 权限的 iDRAC 用户名。 |
 | `PASSWORD` | Yes | iDRAC password. / iDRAC 密码。 |
 | `FAN_SPEED_STEPS` | No | Temperature-to-speed rules. Default: `50:20,55:25,60:30,65:40`. / 温度和风扇转速规则，默认值：`50:20,55:25,60:30,65:40`。 |
+| `CONTROL_INTERVAL_SECONDS` | No | Normal control interval. Default: `120`. / 正常控制间隔，默认 `120` 秒。 |
+| `ERROR_INTERVAL_SECONDS` | No | Wait time after a failed control cycle. Default: same as `CONTROL_INTERVAL_SECONDS`. / 控制周期失败后的等待时间，默认等于正常控制间隔。 |
+| `IPMI_RETRY_COUNT` | No | Retry count for each IPMI command. Default: `5`. / 单条 IPMI 命令重试次数，默认 `5`。 |
+| `IPMI_RETRY_DELAY_SECONDS` | No | Wait time between IPMI retries. Default: `20`. / IPMI 重试间隔，默认 `20` 秒。 |
+| `IPMI_TIMEOUT_SECONDS` | No | Subprocess timeout for each IPMI command. Default: `60`. / 单次 IPMI 命令超时时间，默认 `60` 秒。 |
+| `USE_RAW_FAN_DUTY` | No | Query raw fan duty before RPM estimation. Default: `false`. / 是否先用 raw 命令读取风扇占空比，默认 `false`。 |
 
 The application does not include default credentials. Missing variables will stop startup with a clear error.
 
 程序不内置默认地址、账号或密码。缺少环境变量时会直接停止并输出明确错误。
+
+For iDRAC8 systems with unstable IPMI sessions, keep `CONTROL_INTERVAL_SECONDS` at `120` or higher. The default `USE_RAW_FAN_DUTY=false` avoids one extra IPMI session per cycle and estimates fan percentage from the RPM data already returned by `sdr`.
+
+对于 IPMI 会话不稳定的 iDRAC8，建议 `CONTROL_INTERVAL_SECONDS` 保持 `120` 秒或更高。默认 `USE_RAW_FAN_DUTY=false` 会跳过额外的 raw 占空比查询，直接使用同一次 `sdr` 返回的 RPM 估算风扇百分比，减少 iDRAC 会话压力。
 
 ## Temperature Policy / 温控策略
 

@@ -49,6 +49,11 @@ class FanControllerConfigTest(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     self.make_controller(invalid_value)
 
+    def test_raw_fan_duty_query_is_disabled_by_default(self):
+        controller = self.make_controller()
+
+        self.assertFalse(controller.use_raw_fan_duty)
+
 
 if __name__ == '__main__':
     unittest.main()
